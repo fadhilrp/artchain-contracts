@@ -15,12 +15,16 @@ model User {
 }
 
 model Artwork {
-  id          Int      @id @default(autoincrement())
-  imageHash   String
-  artist      String
-  isDuplicate Boolean
-  consensus   Boolean
-  title       String
-  metadata    Json
-  createdAt   DateTime @default(now())
+  id                Int      @id @default(autoincrement())
+  imageHash         String   @unique
+  artist            String
+  title             String
+  isOriginal        Boolean
+  validated         Boolean
+  consensusCount    Int
+  requiredValidators Int
+  originalAuthor    String
+  timestamp         DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
