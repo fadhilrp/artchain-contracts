@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:mysecretpassword@localhost:5432/artchain_db"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -19,12 +19,12 @@ model Artwork {
   imageHash         String   @unique
   artist            String
   title             String
-  isOriginal        Boolean  @default(false)
-  validated         Boolean  @default(false)
-  consensusCount    Int      @default(0)
-  requiredValidators Int     @default(2)
-  originalAuthor    String   @default("")
-  timestamp         DateTime @default(now())
+  isOriginal        Boolean
+  validated         Boolean
+  consensusCount    Int
+  requiredValidators Int
+  originalAuthor    String
+  timestamp         DateTime
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

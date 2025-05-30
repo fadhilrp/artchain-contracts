@@ -22,7 +22,7 @@ model Artwork {
   isOriginal        Boolean  @default(false)
   validated         Boolean  @default(false)
   consensusCount    Int      @default(0)
-  requiredValidators Int     @default(2)
+  requiredValidators Int     @default(10)
   originalAuthor    String   @default("")
   timestamp         DateTime @default(now())
   createdAt         DateTime @default(now())
