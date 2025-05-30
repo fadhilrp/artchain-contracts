@@ -4,6 +4,9 @@ const cors = require('cors');
 const app = express();
 const port = 3001;
 
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
 // Middleware
 app.use(cors());
 app.use(express.json());
@@ -64,6 +67,17 @@ app.post('/upload', upload.single('image'), (req, res) => {
   };
 
   res.json(result);
+});
+
+// Endpoint to fetch all artworks
+app.get('/artworks', async (req, res) => {
+  try {
+    const artworks = await prisma.artwork.findMany({ orderBy: { createdAt: 'desc' } });
+    res.json(artworks);
+  } catch (err) {
+    console.error('Error fetching artworks:', err);
+    res.status(500).json({ error: 'Failed to fetch artworks.' });
+  }
 });
 
 app.listen(port, () => {
