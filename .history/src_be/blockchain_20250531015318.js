@@ -1,13 +1,13 @@
 require('dotenv').config();
 const { ethers } = require('ethers');
-const ArtValidationNew = require('../artifacts/contracts/ArtValidationNew.sol/ArtValidationNew.json');
+const ArtValidation = require('../artifacts-zk/contracts/ArtValidation.sol/ArtValidation.json');
 
 // Initialize provider and contract with hardcoded values
 const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6");
 const wallet = new ethers.Wallet("0x74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd", provider);
 const contract = new ethers.Contract(
-  "0x1B543998411de37D22dfe9F99CC9077465d1BaFc",
-  ArtValidationNew.abi,
+  "0x65832592c9b9a80d8Da2BA90e13b1313b2217374",
+  ArtValidation.abi,
   wallet
 );
 
@@ -25,18 +25,17 @@ async function getAllArtworks() {
 
     // Fetch details for each artwork
     for (let i = 0; i < totalArtworks; i++) {
-      const imageHash = await contract.getArtworkHash(i);
-      const artwork = await contract.artworks(imageHash);
+      const imageHash = await contract.artworkHashes(i);
+      const details = await contract.getArtworkDetails(imageHash);
       
       artworks.push({
         imageHash,
-        artist: artwork.artist,
-        timestamp: new Date(Number(artwork.timestamp) * 1000).toISOString(),
-        originalAuthor: artwork.originalAuthor,
-        validated: artwork.validated,
-        isOriginal: artwork.isOriginal,
-        consensusCount: artwork.consensusCount,
-        requiredValidators: artwork.requiredValidators
+        isOriginal: details[0],
+        validated: details[1],
+        consensusCount: details[2],
+        requiredValidators: details[3],
+        originalAuthor: details[4],
+        timestamp: new Date().toISOString(), // You might want to store this in the contract
       });
     }
 
@@ -78,15 +77,13 @@ async function validateArtwork(imageHash, isOriginal, originalAuthor, validatorA
 // Function to get artwork details
 async function getArtworkDetails(imageHash) {
   try {
-    const artwork = await contract.artworks(imageHash);
+    const details = await contract.getArtworkDetails(imageHash);
     return {
-      artist: artwork.artist,
-      timestamp: new Date(Number(artwork.timestamp) * 1000).toISOString(),
-      originalAuthor: artwork.originalAuthor,
-      validated: artwork.validated,
-      isOriginal: artwork.isOriginal,
-      consensusCount: artwork.consensusCount,
-      requiredValidators: artwork.requiredValidators
+      isOriginal: details[0],
+      validated: details[1],
+      consensusCount: details[2],
+      requiredValidators: details[3],
+      originalAuthor: details[4],
     };
   } catch (error) {
     console.error('Error getting artwork details:', error);

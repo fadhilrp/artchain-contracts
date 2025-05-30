@@ -15,9 +15,9 @@ module.exports = {
   },
   networks: {
     sepolia: {
-      url: "https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6",
+      url: "https://sepolia.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
       chainId: 11155111,
-      accounts: ["74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd"],
+      accounts: ["0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"],
     },
     zkSyncSepoliaTestnet: {
       url: "https://sepolia.era.zksync.dev",

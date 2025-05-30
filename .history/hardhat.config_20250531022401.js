@@ -17,26 +17,30 @@ module.exports = {
     sepolia: {
       url: "https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6",
       chainId: 11155111,
-      accounts: ["74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd"],
+      accounts: [process.env.PRIVATE_KEY || "0x74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd"],
     },
     zkSyncSepoliaTestnet: {
       url: "https://sepolia.era.zksync.dev",
       ethNetwork: "sepolia",
       zksync: true,
-      verifyURL: "https://explorer.sepolia.era.zksync.dev/contract_verification",
+      chainId: 300,
+      verifyURL:
+        "https://explorer.sepolia.era.zksync.dev/contract_verification",
     },
     zkSyncMainnet: {
       url: "https://mainnet.era.zksync.io",
       ethNetwork: "mainnet",
       zksync: true,
-      verifyURL: "https://zksync2-mainnet-explorer.zksync.io/contract_verification",
+      chainId: 324,
+      verifyURL:
+        "https://zksync2-mainnet-explorer.zksync.io/contract_verification",
     },
   },
   paths: {
-    artifacts: "artifacts",
-    cache: "cache",
-    sources: "contracts",
-    tests: "test",
+    artifacts: "./artifacts-zk",
+    cache: "./cache-zk",
+    sources: "./contracts",
+    tests: "./test",
   },
   solidity: {
     version: "0.8.23",
@@ -47,9 +51,4 @@ module.exports = {
       },
     },
   },
-  etherscan: {
-    apiKey: {
-      sepolia: "M34KV42HWAF7AT5MDWGEKXC9E9561GCCAY" // Replace with your Etherscan API key
-    }
-  }
 };

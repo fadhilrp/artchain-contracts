@@ -15,7 +15,8 @@ module.exports = {
   },
   networks: {
     sepolia: {
-      url: "https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6",
+      url: "https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6
+",
       chainId: 11155111,
       accounts: ["74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd"],
     },

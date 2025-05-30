@@ -1,13 +1,15 @@
 require('dotenv').config();
 const { ethers } = require('ethers');
-const ArtValidationNew = require('../artifacts/contracts/ArtValidationNew.sol/ArtValidationNew.json');
+const ArtValidation = require('../artifacts-zk/contracts/ArtValidation.sol/ArtValidation.json');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // Initialize provider and contract with hardcoded values
 const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6");
 const wallet = new ethers.Wallet("0x74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd", provider);
 const contract = new ethers.Contract(
-  "0x1B543998411de37D22dfe9F99CC9077465d1BaFc",
-  ArtValidationNew.abi,
+  "0x65832592c9b9a80d8Da2BA90e13b1313b2217374",
+  ArtValidation.abi,
   wallet
 );
 
@@ -19,26 +21,28 @@ console.log('Wallet Address:', wallet.address);
 // Function to get all artworks
 async function getAllArtworks() {
   try {
-    // Get the total number of artworks
-    const totalArtworks = await contract.getTotalArtworks();
-    const artworks = [];
+    // Get artworks from database
+    const dbArtworks = await prisma.artwork.findMany({
+      orderBy: { timestamp: 'desc' }
+    });
 
-    // Fetch details for each artwork
-    for (let i = 0; i < totalArtworks; i++) {
-      const imageHash = await contract.getArtworkHash(i);
-      const artwork = await contract.artworks(imageHash);
-      
-      artworks.push({
-        imageHash,
-        artist: artwork.artist,
-        timestamp: new Date(Number(artwork.timestamp) * 1000).toISOString(),
-        originalAuthor: artwork.originalAuthor,
-        validated: artwork.validated,
-        isOriginal: artwork.isOriginal,
-        consensusCount: artwork.consensusCount,
-        requiredValidators: artwork.requiredValidators
-      });
-    }
+    // For each artwork, get the latest blockchain state
+    const artworks = await Promise.all(dbArtworks.map(async (artwork) => {
+      try {
+        const details = await contract.getArtworkDetails(artwork.imageHash);
+        return {
+          ...artwork,
+          isOriginal: details[0],
+          validated: details[1],
+          consensusCount: Number(details[2]),
+          requiredValidators: Number(details[3]),
+          originalAuthor: details[4],
+        };
+      } catch (error) {
+        console.error(`Error getting details for artwork ${artwork.imageHash}:`, error);
+        return artwork; // Return database version if blockchain fetch fails
+      }
+    }));
 
     return artworks;
   } catch (error) {
@@ -78,15 +82,13 @@ async function validateArtwork(imageHash, isOriginal, originalAuthor, validatorA
 // Function to get artwork details
 async function getArtworkDetails(imageHash) {
   try {
-    const artwork = await contract.artworks(imageHash);
+    const details = await contract.getArtworkDetails(imageHash);
     return {
-      artist: artwork.artist,
-      timestamp: new Date(Number(artwork.timestamp) * 1000).toISOString(),
-      originalAuthor: artwork.originalAuthor,
-      validated: artwork.validated,
-      isOriginal: artwork.isOriginal,
-      consensusCount: artwork.consensusCount,
-      requiredValidators: artwork.requiredValidators
+      isOriginal: details[0],
+      validated: details[1],
+      consensusCount: details[2],
+      requiredValidators: details[3],
+      originalAuthor: details[4],
     };
   } catch (error) {
     console.error('Error getting artwork details:', error);
