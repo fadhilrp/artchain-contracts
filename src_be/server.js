@@ -6,8 +6,10 @@ const app = express();
 const port = 3001;
 
 const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-const blockchain = require('./blockchain');
+const prisma = new PrismaClient({
+  log: ['query', 'info', 'warn', 'error'],
+});
+// const blockchain = require('./blockchain');
 
 // Middleware
 app.use(cors());
@@ -31,44 +33,45 @@ app.post('/upload', upload.single('image'), async (req, res) => {
   try {
     // 1. Generate image hash
     const imageHash = ethers.utils.keccak256(imageBuffer);
-    
+
     // 2. Submit to blockchain
-    const submitted = await blockchain.submitArtwork(imageHash);
-    if (!submitted) {
-      throw new Error('Failed to submit artwork to blockchain');
-    }
+    // const submitted = await blockchain.submitArtwork(imageHash);
+    // if (!submitted) {
+    //   throw new Error('Failed to submit artwork to blockchain');
+    // }
 
     // 3. Simulate validators decoding hash and VLM validation
     const validationResult = validateWithVLM(imageBuffer);
     const isOriginal = validationResult === 'original';
 
-    // 4. Submit validation to blockchain
-    const validated = await blockchain.validateArtwork(
-      imageHash,
-      isOriginal,
-      isOriginal ? artist : 'Unknown'
-    );
+    // // 4. Submit validation to blockchain
+    // const validated = await blockchain.validateArtwork(
+    //   imageHash,
+    //   isOriginal,
+    //   isOriginal ? artist : 'Unknown'
+    // );
 
-    if (!validated) {
-      throw new Error('Failed to validate artwork on blockchain');
-    }
+    // if (!validated) {
+    //   throw new Error('Failed to validate artwork on blockchain');
+    // }
 
-    // 5. Get artwork details from blockchain
-    const artworkDetails = await blockchain.getArtworkDetails(imageHash);
+    // // 5. Get artwork details from blockchain
+    // const artworkDetails = await blockchain.getArtworkDetails(imageHash);
 
     // 6. Save to database
     const artwork = await prisma.artwork.create({
       data: {
-        imageHash: imageHash,
+        imageHash,
         artist,
         title,
-        isOriginal: artworkDetails.isOriginal,
-        validated: artworkDetails.validated,
-        consensusCount: artworkDetails.consensusCount,
-        requiredValidators: artworkDetails.requiredValidators,
-        originalAuthor: artworkDetails.originalAuthor,
-        timestamp: new Date(artworkDetails.timestamp * 1000)
-      }
+        isOriginal: true,
+        validated: true,
+        consensusCount: 1,
+        requiredValidators: 2,
+        originalAuthor: 'qwe',
+        timestamp: new Date(),
+        updatedAt: new Date(),
+      },
     });
 
     res.json(artwork);

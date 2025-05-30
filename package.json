@@ -11,7 +11,11 @@
     "hardhat": "^2.19.1"
   },
   "dependencies": {
+    "@prisma/client": "^6.8.2",
     "@thirdweb-dev/contracts": "^3.8.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "multer": "^2.0.0",
     "zksync-ethers": "^5.7.0"
   }
 }
