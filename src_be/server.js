@@ -174,6 +174,17 @@ app.post('/validate', async (req, res) => {
   }
 });
 
+// Get all artworks from blockchain
+app.get('/api/artworks', async (req, res) => {
+  try {
+    const artworks = await blockchain.getAllArtworks();
+    res.json(artworks);
+  } catch (error) {
+    console.error('Error fetching artworks:', error);
+    res.status(500).json({ error: 'Failed to fetch artworks' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`ArtChain backend listening at http://localhost:${port}`);
 });

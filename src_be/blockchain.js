@@ -16,6 +16,36 @@ console.log('Initialized blockchain connection with:');
 console.log('Contract Address:', contract.target);
 console.log('Wallet Address:', wallet.address);
 
+// Function to get all artworks
+async function getAllArtworks() {
+  try {
+    // Get the total number of artworks
+    const totalArtworks = await contract.getTotalArtworks();
+    const artworks = [];
+
+    // Fetch details for each artwork
+    for (let i = 0; i < totalArtworks; i++) {
+      const imageHash = await contract.artworkHashes(i);
+      const details = await contract.getArtworkDetails(imageHash);
+      
+      artworks.push({
+        imageHash,
+        isOriginal: details[0],
+        validated: details[1],
+        consensusCount: details[2],
+        requiredValidators: details[3],
+        originalAuthor: details[4],
+        timestamp: new Date().toISOString(), // You might want to store this in the contract
+      });
+    }
+
+    return artworks;
+  } catch (error) {
+    console.error('Error getting all artworks:', error);
+    throw error;
+  }
+}
+
 // Function to submit artwork to blockchain
 async function submitArtwork(imageHash) {
   try {
@@ -65,4 +95,5 @@ module.exports = {
   submitArtwork,
   validateArtwork,
   getArtworkDetails,
+  getAllArtworks,
 }; 
