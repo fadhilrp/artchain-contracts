@@ -107,6 +107,65 @@ app.get('/artworks', async (req, res) => {
   }
 });
 
+// Endpoint to validate artwork
+app.post('/validate', async (req, res) => {
+  const { imageHash, isOriginal, originalAuthor, validatorAddress } = req.body;
+
+  if (!imageHash || typeof isOriginal !== 'boolean' || !validatorAddress) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // 1. Submit validation to blockchain
+    const validated = await blockchain.validateArtwork(
+      imageHash,
+      isOriginal,
+      originalAuthor || 'Unknown',
+      validatorAddress
+    );
+
+    // 2. Get updated artwork details from blockchain
+    const artworkDetails = await blockchain.getArtworkDetails(imageHash);
+
+    // 3. Update database with new validation results
+    const artwork = await prisma.artwork.update({
+      where: {
+        imageHash: imageHash
+      },
+      data: {
+        isOriginal: artworkDetails?.isOriginal || isOriginal,
+        validated: artworkDetails?.validated || true,
+        consensusCount: Number(artworkDetails?.consensusCount || 1n),
+        requiredValidators: Number(artworkDetails?.requiredValidators || 2n),
+        originalAuthor: artworkDetails?.originalAuthor || originalAuthor || 'Unknown',
+        updatedAt: new Date(),
+      },
+    });
+
+    res.json({
+      success: true,
+      artwork,
+      message: 'Artwork validation submitted successfully'
+    });
+  } catch (error) {
+    console.error('Error validating artwork:', error);
+    
+    // Check for specific blockchain errors
+    if (error.message === 'Already voted') {
+      return res.status(400).json({ 
+        error: 'Validation failed',
+        details: 'You have already validated this artwork',
+        code: 'ALREADY_VOTED'
+      });
+    }
+
+    res.status(500).json({ 
+      error: 'Failed to validate artwork',
+      details: error.message || 'An unexpected error occurred'
+    });
+  }
+});
+
 app.listen(port, () => {
   console.log(`ArtChain backend listening at http://localhost:${port}`);
 });

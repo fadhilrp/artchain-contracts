@@ -1,65 +1,59 @@
+require('dotenv').config();
 const { ethers } = require('ethers');
 const ArtValidation = require('../artifacts-zk/contracts/ArtValidation.sol/ArtValidation.json');
-const ValidatorToken = require('../artifacts-zk/contracts/ValidatorToken.sol/ValidatorToken.json');
 
-// Contract addresses - replace these with your deployed contract addresses
-const ART_VALIDATION_ADDRESS = "0x65832592c9b9a80d8Da2BA90e13b1313b2217374";
-const VALIDATOR_TOKEN_ADDRESS = "0xc3fb13Da28f5abf142A1b8219DF26A8Ab7127504";
-
-// Initialize provider and signer
+// Initialize provider and contract with hardcoded values
 const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6");
 const wallet = new ethers.Wallet("0x74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd", provider);
-
-// Initialize contracts
-const artValidation = new ethers.Contract(
-  ART_VALIDATION_ADDRESS,
+const contract = new ethers.Contract(
+  "0x65832592c9b9a80d8Da2BA90e13b1313b2217374",
   ArtValidation.abi,
   wallet
 );
 
-const validatorToken = new ethers.Contract(
-  VALIDATOR_TOKEN_ADDRESS,
-  ValidatorToken.abi,
-  wallet
-);
+// Log initialization
+console.log('Initialized blockchain connection with:');
+console.log('Contract Address:', contract.target);
+console.log('Wallet Address:', wallet.address);
 
 // Function to submit artwork to blockchain
 async function submitArtwork(imageHash) {
   try {
-    const tx = await artValidation.submitArtwork(imageHash);
+    const tx = await contract.submitArtwork(imageHash);
     await tx.wait();
     return true;
   } catch (error) {
     console.error('Error submitting artwork:', error);
-    return false;
+    throw error;
   }
 }
 
 // Function to validate artwork
-async function validateArtwork(imageHash, isOriginal, originalAuthor) {
+async function validateArtwork(imageHash, isOriginal, originalAuthor, validatorAddress) {
   try {
-    const tx = await artValidation.validateArtwork(imageHash, isOriginal, originalAuthor);
+    const tx = await contract.validateArtwork(imageHash, isOriginal, originalAuthor);
     await tx.wait();
     return true;
   } catch (error) {
     console.error('Error validating artwork:', error);
-    return false;
+    // Check if this is an "Already voted" error
+    if (error.reason === 'Already voted' || error.message === 'Already voted') {
+      throw new Error('Already voted');
+    }
+    throw new Error('Failed to validate artwork on blockchain');
   }
 }
 
 // Function to get artwork details
 async function getArtworkDetails(imageHash) {
   try {
-    const artwork = await artValidation.artworks(imageHash);
+    const details = await contract.getArtworkDetails(imageHash);
     return {
-      imageHash: artwork.imageHash,
-      artist: artwork.artist,
-      timestamp: artwork.timestamp,
-      originalAuthor: artwork.originalAuthor,
-      validated: artwork.validated,
-      isOriginal: artwork.isOriginal,
-      consensusCount: artwork.consensusCount,
-      requiredValidators: artwork.requiredValidators
+      isOriginal: details[0],
+      validated: details[1],
+      consensusCount: details[2],
+      requiredValidators: details[3],
+      originalAuthor: details[4],
     };
   } catch (error) {
     console.error('Error getting artwork details:', error);
@@ -70,5 +64,5 @@ async function getArtworkDetails(imageHash) {
 module.exports = {
   submitArtwork,
   validateArtwork,
-  getArtworkDetails
+  getArtworkDetails,
 }; 
