@@ -5,7 +5,13 @@ const hre = require("hardhat");
 
 async function main() {
   const contractAddress = "<YOUR CONTRACT ADDRESS>"; // TODO: contract address
-  const constructorArgs = []; // TODO: add constructor params here, if any
+  const constructorArgs = [
+    "0x...", // _defaultAdmin address
+    "My NFT Collection", // _name
+    "MNFT", // _symbol
+    "0x...", // _royaltyRecipient address
+    "500" // _royaltyBps (5% = 500)
+  ];
 
   console.log("Verifying contract.");
   await verify(

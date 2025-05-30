@@ -5,7 +5,7 @@ require("@matterlabs/hardhat-zksync-verify");
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
   zksolc: {
-    version: "1.4.1",
+    version: "1.5.12",
     compilerSource: "binary",
     settings: {
       optimizer: {
