@@ -25,6 +25,14 @@ function validateWithVLM(imageBuffer) {
   return Math.random() < 0.5 ? 'duplicate' : 'original';
 }
 
+app.post('/ai-vlm', async (req, res) => {
+  const result = {
+    image_similarity: +(Math.random() * 100).toFixed(2),
+    metadata_similarity: +(Math.random() * 100).toFixed(2),
+    confidence: +(Math.random() * 100).toFixed(2),
+  };
+  res.json(result);
+});
 // Main upload endpoint
 app.post('/upload', upload.single('image'), async (req, res) => {
   const { artist, title } = req.body;
