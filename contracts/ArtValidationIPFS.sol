@@ -5,7 +5,7 @@ interface IValidatorToken {
     function rewardValidator(address validator) external;
 }
 
-contract ArtValidation {
+contract ArtValidationIPFS {
     struct Artwork {
         bytes32 imageHash;
         address artist;
@@ -15,7 +15,6 @@ contract ArtValidation {
         bool isOriginal;
         uint8 consensusCount;
         uint8 requiredValidators;
-        // IPFS and metadata fields
         string[] ipfsImageUris;    // Array of IPFS image URIs
         string ipfsMetadataUri;    // IPFS metadata URI
         string title;              // Artwork title
@@ -54,7 +53,6 @@ contract ArtValidation {
         tokenContract = _tokenContract;
     }
 
-    // Enhanced submit function with IPFS support
     function submitArtwork(
         bytes32 imageHash,
         string[] memory ipfsImageUris,
@@ -93,35 +91,6 @@ contract ArtValidation {
             ipfsImageUris, 
             ipfsMetadataUri
         );
-    }
-
-    // Legacy submit function (backward compatibility)
-    function submitArtwork(bytes32 imageHash) external {
-        require(artworks[imageHash].timestamp == 0, "Artwork already submitted");
-        
-        // Create empty arrays for legacy submissions
-        string[] memory emptyUris = new string[](0);
-        
-        artworks[imageHash] = Artwork({
-            imageHash: imageHash,
-            artist: msg.sender,
-            timestamp: block.timestamp,
-            originalAuthor: "",
-            validated: false,
-            isOriginal: false,
-            consensusCount: 0,
-            requiredValidators: MIN_VALIDATORS,
-            ipfsImageUris: emptyUris,
-            ipfsMetadataUri: "",
-            title: "",
-            description: "",
-            medium: "",
-            additionalInfo: ""
-        });
-        
-        artworkHashes.push(imageHash); // Add hash to array
-        
-        emit ArtworkSubmitted(imageHash, msg.sender, "", emptyUris, "");
     }
 
     function validateArtwork(
@@ -171,7 +140,7 @@ contract ArtValidation {
         return artworkHashes[index];
     }
 
-    // Get complete artwork details including IPFS data
+    // Get artwork details including IPFS data
     function getArtworkDetails(bytes32 imageHash) external view returns (
         bytes32,           // imageHash
         address,           // artist
@@ -209,7 +178,7 @@ contract ArtValidation {
         );
     }
 
-    // Get only IPFS URIs for an artwork
+    // Get IPFS URIs for an artwork
     function getArtworkIPFS(bytes32 imageHash) external view returns (
         string[] memory ipfsImageUris,
         string memory ipfsMetadataUri
@@ -219,10 +188,4 @@ contract ArtValidation {
         
         return (artwork.ipfsImageUris, artwork.ipfsMetadataUri);
     }
-
-    // Check if artwork has IPFS data
-    function hasIPFSData(bytes32 imageHash) external view returns (bool) {
-        Artwork storage artwork = artworks[imageHash];
-        return artwork.ipfsImageUris.length > 0;
-    }
-}
+} 

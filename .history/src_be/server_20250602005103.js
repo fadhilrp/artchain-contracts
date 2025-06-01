@@ -10,40 +10,20 @@ const prisma = new PrismaClient({
   log: ['query', 'info', 'warn', 'error'],
 });
 
-// Try to use unified blockchain integration first, then fallback
+// Try to use new IPFS blockchain integration, fallback to old one
 let blockchain;
 try {
-  blockchain = require('./blockchain-unified');
-  console.log('Using unified blockchain integration');
+  blockchain = require('./blockchain-ipfs');
+  console.log('Using IPFS-enabled blockchain integration');
   
   // Check if contract is ready
   if (!blockchain.isContractReady()) {
-    console.warn('Unified contract not ready, falling back to IPFS blockchain');
-    try {
-      blockchain = require('./blockchain-ipfs');
-      if (!blockchain.isContractReady()) {
-        console.warn('IPFS contract not ready either, falling back to legacy blockchain');
-        blockchain = require('./blockchain');
-      }
-    } catch {
-      console.warn('IPFS blockchain not available, using legacy blockchain');
-      blockchain = require('./blockchain');
-    }
-  }
-} catch (error) {
-  console.warn('Unified blockchain not available, trying alternatives:', error.message);
-  try {
-    blockchain = require('./blockchain-ipfs');
-    console.log('Using IPFS-enabled blockchain integration');
-    
-    if (!blockchain.isContractReady()) {
-      console.warn('IPFS contract not ready, falling back to legacy blockchain');
-      blockchain = require('./blockchain');
-    }
-  } catch (error) {
-    console.warn('IPFS blockchain not available, using legacy blockchain:', error.message);
+    console.warn('IPFS contract not ready, falling back to legacy blockchain');
     blockchain = require('./blockchain');
   }
+} catch (error) {
+  console.warn('IPFS blockchain not available, using legacy blockchain:', error.message);
+  blockchain = require('./blockchain');
 }
 
 // Middleware
@@ -116,13 +96,12 @@ app.post('/upload-ipfs', async (req, res) => {
     const imageHash = generateHashFromIPFS(imageUris[0], metadata);
     console.log('Generated image hash:', imageHash);
 
-    // 2. Check if using unified or IPFS-enabled contract
+    // 2. Check if using IPFS-enabled contract
     if (blockchain.isContractReady && blockchain.isContractReady()) {
-      const contractInfo = blockchain.getContractInfo();
-      console.log(`Using ${contractInfo.type || 'IPFS-enabled'} smart contract`);
+      console.log('Using IPFS-enabled smart contract');
       
-      // Submit to unified/IPFS-enabled blockchain contract
-      const submitted = await blockchain.submitArtworkWithIPFS(
+      // Submit to new IPFS-enabled blockchain contract
+      const submitted = await blockchain.submitArtworkIPFS(
         imageHash,
         imageUris,
         metadataUri || '',
@@ -133,28 +112,28 @@ app.post('/upload-ipfs', async (req, res) => {
       );
       
       if (!submitted) {
-        throw new Error('Failed to submit artwork to blockchain');
+        throw new Error('Failed to submit artwork to IPFS-enabled blockchain');
       }
       
-      console.log('Artwork submitted to blockchain successfully');
+      console.log('Artwork submitted to IPFS-enabled blockchain successfully');
       
       // 3. Simulate VLM validation (using IPFS URI instead of buffer)
       const validationResult = Math.random() < 0.8 ? 'original' : 'duplicate';
       const isOriginal = validationResult === 'original';
 
       // 4. Submit validation to blockchain
-      const validated = await blockchain.validateArtwork(
+      const validated = await blockchain.validateArtworkIPFS(
         imageHash,
         isOriginal,
         isOriginal ? metadata.properties?.artist || 'Unknown' : 'Unknown'
       );
 
       if (!validated) {
-        throw new Error('Failed to validate artwork on blockchain');
+        throw new Error('Failed to validate artwork on IPFS-enabled blockchain');
       }
 
       // 5. Get artwork details from blockchain
-      const artworkDetails = await blockchain.getArtworkDetails(imageHash);
+      const artworkDetails = await blockchain.getArtworkDetailsIPFS(imageHash);
 
       // 6. Save to database with complete IPFS data
       const artwork = await prisma.artwork.upsert({
@@ -207,9 +186,8 @@ app.post('/upload-ipfs', async (req, res) => {
         success: true,
         artwork: convertBigIntToString(artwork),
         imageHash,
-        blockchain: contractInfo.type || 'ipfs-enabled',
-        contract: contractInfo.address,
-        message: 'Artwork successfully uploaded to blockchain with IPFS storage'
+        blockchain: 'ipfs-enabled',
+        message: 'Artwork successfully uploaded to IPFS-enabled blockchain and stored'
       });
       
     } else {
@@ -496,37 +474,13 @@ app.post('/validate', async (req, res) => {
 // Get all artworks from blockchain
 app.get('/api/artworks', async (req, res) => {
   try {
-    // Check if using any modern contract (unified or IPFS-enabled)
-    if (blockchain.isContractReady && blockchain.isContractReady()) {
-      const contractInfo = blockchain.getContractInfo();
-      console.log(`Fetching artworks from ${contractInfo.type || 'IPFS-enabled'} blockchain`);
-      
-      const artworks = await blockchain.getAllArtworks();
-      // Convert BigInt values to strings before sending response
-      const serializedArtworks = convertBigIntToString(artworks);
-      
-      res.json({
-        artworks: serializedArtworks,
-        source: contractInfo.type || 'ipfs-blockchain',
-        contract: contractInfo
-      });
-    } else {
-      console.log('Fetching artworks from legacy blockchain');
-      const artworks = await blockchain.getAllArtworks();
-      // Convert BigInt values to strings before sending response
-      const serializedArtworks = convertBigIntToString(artworks);
-      res.json({
-        artworks: serializedArtworks,
-        source: 'legacy-blockchain'
-      });
-    }
+    const artworks = await blockchain.getAllArtworks();
+    // Convert BigInt values to strings before sending response
+    const serializedArtworks = convertBigIntToString(artworks);
+    res.json(serializedArtworks);
   } catch (error) {
-    console.error('Error fetching artworks from blockchain:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch artworks from blockchain',
-      details: error.message,
-      fallback: 'Consider using /artworks endpoint for database fallback'
-    });
+    console.error('Error fetching artworks:', error);
+    res.status(500).json({ error: 'Failed to fetch artworks' });
   }
 });
 

@@ -496,19 +496,16 @@ app.post('/validate', async (req, res) => {
 // Get all artworks from blockchain
 app.get('/api/artworks', async (req, res) => {
   try {
-    // Check if using any modern contract (unified or IPFS-enabled)
+    // Check if using IPFS-enabled contract
     if (blockchain.isContractReady && blockchain.isContractReady()) {
-      const contractInfo = blockchain.getContractInfo();
-      console.log(`Fetching artworks from ${contractInfo.type || 'IPFS-enabled'} blockchain`);
-      
-      const artworks = await blockchain.getAllArtworks();
+      console.log('Fetching artworks from IPFS-enabled blockchain');
+      const artworks = await blockchain.getAllArtworksIPFS();
       // Convert BigInt values to strings before sending response
       const serializedArtworks = convertBigIntToString(artworks);
-      
       res.json({
         artworks: serializedArtworks,
-        source: contractInfo.type || 'ipfs-blockchain',
-        contract: contractInfo
+        source: 'ipfs-blockchain',
+        contract: blockchain.getContractInfo()
       });
     } else {
       console.log('Fetching artworks from legacy blockchain');
