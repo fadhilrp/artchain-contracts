@@ -162,16 +162,28 @@ app.post('/validate', async (req, res) => {
     const serializedDetails = convertBigIntToString(artworkDetails);
 
     // 3. Update database with new validation results
-    const artwork = await prisma.artwork.update({
+    const artwork = await prisma.artwork.upsert({
       where: {
         imageHash: imageHash
       },
-      data: {
+      update: {
         isOriginal: serializedDetails?.isOriginal || isOriginal,
         validated: serializedDetails?.validated || true,
         consensusCount: Number(serializedDetails?.consensusCount || 1),
         requiredValidators: Number(serializedDetails?.requiredValidators || 2),
         originalAuthor: serializedDetails?.originalAuthor || originalAuthor || 'Unknown',
+        updatedAt: new Date(),
+      },
+      create: {
+        imageHash: imageHash,
+        artist: serializedDetails?.artist || 'Unknown',
+        title: 'Unknown',
+        isOriginal: serializedDetails?.isOriginal || isOriginal,
+        validated: serializedDetails?.validated || true,
+        consensusCount: Number(serializedDetails?.consensusCount || 1),
+        requiredValidators: Number(serializedDetails?.requiredValidators || 2),
+        originalAuthor: serializedDetails?.originalAuthor || originalAuthor || 'Unknown',
+        timestamp: new Date(serializedDetails?.timestamp || Date.now()),
         updatedAt: new Date(),
       },
     });

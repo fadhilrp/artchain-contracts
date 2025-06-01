@@ -6,7 +6,7 @@ const ArtValidationNew = require('../artifacts/contracts/ArtValidationNew.sol/Ar
 const provider = new ethers.JsonRpcProvider("https://sepolia.infura.io/v3/5adc04e9ea8646d481e94c0475580fe6");
 const wallet = new ethers.Wallet("0x74deef292241a189d5bf39dc2cd12e0f9aeebb956ff082ccee03fc8f98c10ebd", provider);
 const contract = new ethers.Contract(
-  "0x1B543998411de37D22dfe9F99CC9077465d1BaFc",
+  "0x39084F59203E6A1C4e31cBDbbF4726C5CEBA932a",
   ArtValidationNew.abi,
   wallet
 );
