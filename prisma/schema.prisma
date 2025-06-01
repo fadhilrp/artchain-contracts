@@ -17,6 +17,7 @@ model User {
 model Artwork {
   id                Int      @id @default(autoincrement())
   imageHash         String   @unique
+  imageUrl          String    @default("")
   artist            String
   title             String
   isOriginal        Boolean  @default(false)
