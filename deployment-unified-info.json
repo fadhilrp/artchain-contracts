@@ -1,9 +1,9 @@
 {
-  "validatorToken": "0xc3fb13Da28f5abf142A1b8219DF26A8Ab7127504",
-  "artValidation": "0x5bf9f5f8d02A6Efc12E5Ae79D6f99E7cB0B577af",
+  "validatorToken": "0xDAf42E9976f4Ea3A1Cbe3836f6aC556576c325E7",
+  "artValidation": "0x449B5863282644177852e60ac404375DC0723365",
   "contractName": "ArtValidation",
   "network": "sepolia",
-  "deployedAt": "2025-06-01T17:05:13.536Z",
+  "deployedAt": "2025-06-01T17:29:14.434Z",
   "features": [
     "IPFS image URI storage",
     "Metadata storage",

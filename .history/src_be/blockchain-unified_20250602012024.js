@@ -7,11 +7,11 @@ const wallet = new ethers.Wallet("0x74deef292241a189d5bf39dc2cd12e0f9aeebb956ff0
 
 // Contract addresses from deployment
 const VALIDATOR_TOKEN_ADDRESS = "0xDAf42E9976f4Ea3A1Cbe3836f6aC556576c325E7";
-const ART_VALIDATION_ADDRESS = "0x449B5863282644177852e60ac404375DC0723365";
+const ART_VALIDATION_ADDRESS = "0x5bf9f5f8d02A6Efc12E5Ae79D6f99E7cB0B577af";
 
 // Initialize contract
-let contract = null;
-let contractAddress = ART_VALIDATION_ADDRESS;
+// let contract = null;
+let contract = ART_VALIDATION_ADDRESS;
 
 // Initialize the contract
 try {
